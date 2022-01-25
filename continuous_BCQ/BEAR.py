@@ -4,6 +4,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import utils
 import torch.distributions as td
+import copy
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -474,6 +475,7 @@ class BEAR(object):
                 state.unsqueeze(0).repeat(num_samples, 1, 1).view(num_samples * state.size(0), state.size(1)),
                 actor_actions.permute(1, 0, 2).contiguous().view(num_samples * actor_actions.size(0),
                                                                  actor_actions.size(2)))
+            # print(critic_qs.shape)
             critic_qs = critic_qs.view(self.num_qs, num_samples, actor_actions.size(0), 1)
             critic_qs = critic_qs.mean(1)
             std_q = torch.std(critic_qs, dim=0, keepdim=False, unbiased=False)
@@ -536,6 +538,28 @@ class BEAR(object):
 
             for param, target_param in zip(self.actor.parameters(), self.actor_target.parameters()):
                 target_param.data.copy_(tau * param.data + (1 - tau) * target_param.data)
+
+    def save(self, filename):
+        torch.save(self.critic.state_dict(), filename + "_critic")
+        torch.save(self.critic_optimizer.state_dict(), filename + "_critic_optimizer")
+
+        torch.save(self.actor.state_dict(), filename + "_actor")
+        torch.save(self.actor_optimizer.state_dict(), filename + "_actor_optimizer")
+
+        torch.save(self.vae.state_dict(), filename + "_vae")
+        torch.save(self.vae_optimizer.state_dict(), filename + "_vae_optimizer")
+
+    def load(self, filename):
+        self.critic.load_state_dict(torch.load(filename + "_critic"))
+        self.critic_optimizer.load_state_dict(torch.load(filename + "_critic_optimizer"))
+        self.critic_target = copy.deepcopy(self.critic)
+
+        self.actor.load_state_dict(torch.load(filename + "_actor"))
+        self.actor_optimizer.load_state_dict(torch.load(filename + "_actor_optimizer"))
+        self.actor_target = copy.deepcopy(self.actor)
+
+        self.vae.load_state_dict(torch.load(filename + "_vae"))
+        self.vae_optimizer.load_state_dict(torch.load(filename + "_vae_optimizer"))
 
         # # Do all logging here
         # logger.record_dict(create_stats_ordered_dict(

@@ -1,0 +1,28 @@
+2021/9/13
+
+15:38  (remote/env36)
+nohup python -u newmain.py --seed 11 --max_timesteps 50000 > ./files/train_BCQ_11.file 2>&1 &
+
+21:45  (remote/env36)
+nohup python -u bear_main.py --seed 11 --max_timesteps 50000 > ./files/train_BEAR_11.file 2>&1 &
+
+22:18  (remote/env36)
+nohup python -u newmain.py --seed 11 --max_timesteps 50000 > ./files/train_BCQ_1_11.file 2>&1 &
+#  这里的buffer是p=0.1，命令中应该表现出来的
+#  nohup python -u newmain.py --seed 11 --max_timesteps 50000 --rand_action_p 0.1 > ./files/train_BCQ_1_11.file 2>&1 &
+
+22:51  (local/env36)
+test.py
+
+2021/9/14
+
+11:13  (local/env36)
+test.py
+    genBuffer(buffer_name="Robust1", seed=19, rand_action_p=0.0, gaussian_std=0.3)
+
+11:40  (local/env36)
+test.py
+    genBuffer(buffer_name="Robust1", seed=19, rand_action_p=0.0, gaussian_std=0.0)
+
+12:03  (remote/env36)
+nohup python -u newmain.py --buffer_name "Robust1" --seed 19 --max_timesteps 50000 --rand_action_p 0.0 > ./files/train_BCQ_0000_19.file 2>&1 &

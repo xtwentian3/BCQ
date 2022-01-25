@@ -92,6 +92,7 @@ def train_BCQ(state_dim, action_dim, max_action, device, args):
     # For saving files
     setting = f"{args.env}_{args.seed}"
     buffer_name = f"{args.buffer_name}_{setting}"
+    buffer_name1 = f"{args.buffer_name}_{args.env}_0"
     print(setting)
     print(buffer_name)
     # Initialize policy
@@ -99,13 +100,16 @@ def train_BCQ(state_dim, action_dim, max_action, device, args):
 
     # Load buffer
     replay_buffer = utils.ReplayBuffer(state_dim, action_dim, device)
-    replay_buffer.load(f"./buffers/{buffer_name}")
+    replay_buffer.load(f"./buffers/{buffer_name}_0.0")
 
     evaluations = []
     episode_num = 0
     done = True
     training_iters = 0
-
+    file_name = f"./results/BCQ_{args.env}_{args.rand_action_p}_{args.seed}"
+    if not os.path.exists(file_name):
+        os.makedirs(file_name)
+    policy.save(f"{file_name}/BCQ_{setting}_{training_iters}")
     while training_iters < args.max_timesteps:
         pol_vals = policy.train(replay_buffer, iterations=int(args.eval_freq), batch_size=args.batch_size)
 
@@ -114,8 +118,11 @@ def train_BCQ(state_dim, action_dim, max_action, device, args):
 
         training_iters += args.eval_freq
         print(f"Training iterations: {training_iters}")
-    # Save final policy
-    torch.save(policy, f"./results/BCQ1_{setting}.pt")
+
+        if training_iters % 10000 == 0:
+            policy.save(f"{file_name}/BCQ_{setting}_{training_iters}")
+    # # Save final policy
+    # torch.save(policy, f"./results/BCQ1_{setting}.pt")
 
 
 # Runs policy for X episodes and returns average reward
@@ -143,11 +150,11 @@ def eval_policy(policy, env_name, seed, eval_episodes=10):
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--env", default="Hopper-v1")  # OpenAI gym environment name
+    parser.add_argument("--env", default="Hopper-v2")  # OpenAI gym environment name
     parser.add_argument("--seed", default=0, type=int)  # Sets Gym, PyTorch and Numpy seeds
     parser.add_argument("--buffer_name", default="Robust")  # Prepends name to filename
     parser.add_argument("--eval_freq", default=5e3, type=float)  # How often (time steps) we evaluate
-    parser.add_argument("--max_timesteps", default=1e6,
+    parser.add_argument("--max_timesteps", default=6e5,
                         type=int)  # Max time steps to run environment or train for (this defines buffer size)
     parser.add_argument("--start_timesteps", default=25e3,
                         type=int)  # Time steps initial random policy is used before training behavioral

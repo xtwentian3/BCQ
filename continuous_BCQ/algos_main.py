@@ -9,6 +9,7 @@ import BEAR
 
 
 def train_2B(state_dim, action_dim, max_action, device, dataset, args):
+    print(dataset.keys())
     # For saving files
     setting = f"{args.env}_{args.seed}"
     # buffer_name1 = f"{args.buffer_name}_{args.env}_0"
@@ -26,7 +27,7 @@ def train_2B(state_dim, action_dim, max_action, device, dataset, args):
         os.makedirs(file_name)
     # Load buffer
     if args.load_model:
-        policy.load(f"./results/Robust_BCQ_Hopper-v2_16/final_policy")
+        policy.load(f"{file_name}/final_policy")
         training_iters = 500000
         evaluations = np.load(f"{file_name}/reward_tran.npy")
 
@@ -41,10 +42,12 @@ def train_2B(state_dim, action_dim, max_action, device, dataset, args):
         training_iters += args.eval_freq
         print(f"Training iterations: {training_iters}")
 
-        if training_iters > args.max_timesteps * 0.85 and training_iters % 10000 == 0:
+        if (training_iters > args.max_timesteps * 0.85 and training_iters % 20000 == 0)\
+                or (training_iters % 200000 == 0):
             policy.save(f"{file_name}/num_{training_iters}")
-    # # Save final policy
-    policy.save(f"{file_name}/final_policy")
+        # # Save final policy
+        policy.save(f"{file_name}/final_policy")
+        np.save(f"{file_name}/training_iters", training_iters)
 
 
 def eval_policy(policy, env_name, seed, eval_episodes=10):
@@ -76,8 +79,8 @@ if __name__ == "__main__":
     parser.add_argument("--eval_freq", default=5e3, type=float)  # How often (time steps) we evaluate
     parser.add_argument("--max_timesteps", default=1e6,
                         type=int)  # Max time steps to run environment or train for (this defines buffer size)
-    parser.add_argument("--start_timesteps", default=25e3,
-                        type=int)  # Time steps initial random policy is used before training behavioral
+    # parser.add_argument("--start_timesteps", default=25e3,
+    #                     type=int)  # Time steps initial random policy is used before training behavioral
     parser.add_argument("--rand_action_p", default=0.3,
                         type=float)  # Probability of selecting random action during batch generation
     parser.add_argument("--gaussian_std", default=0.3,

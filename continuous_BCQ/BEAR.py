@@ -268,8 +268,7 @@ class VAE(nn.Module):
 
     def decode(self, state, z=None):
         if z is None:
-            z = torch.FloatTensor(np.random.normal(0, 1, size=(state.size(0), self.latent_dim))).to(device).clamp(-0.5,
-                                                                                                                  0.5)
+            z = torch.FloatTensor(np.random.normal(0, 1, size=(state.size(0), self.latent_dim))).to(device).clamp(-0.5,0.5)
 
         a = F.relu(self.d1(torch.cat([state, z], 1)))
         a = F.relu(self.d2(a))
@@ -305,8 +304,7 @@ class VAE(nn.Module):
 
 class BEAR(object):
     def __init__(self, state_dim, action_dim, max_action, device, num_qs=2, delta_conf=0.1, use_bootstrap=True, version=0,
-                 lambda_=0.4,
-                 threshold=0.05, mode='auto', num_samples_match=10, mmd_sigma=10.0,
+                 lambda_=0.4,threshold=0.05, mode='auto', num_samples_match=10, mmd_sigma=10.0,
                  lagrange_thresh=10.0, use_kl=False, use_ensemble=True, kernel_type='laplacian'):
         latent_dim = action_dim * 2
         self.actor = RegularActor(state_dim, action_dim, max_action).to(device)
@@ -343,7 +341,6 @@ class BEAR(object):
             # for the purpose of maintaing support matching at all times
             self.log_lagrange2 = torch.randn((), requires_grad=True, device=device)
             self.lagrange2_opt = torch.optim.Adam([self.log_lagrange2, ], lr=1e-3)
-
         self.epoch = 0
 
     def mmd_loss_laplacian(self, samples1, samples2, sigma=0.2):
@@ -558,6 +555,20 @@ class BEAR(object):
 
         self.vae.load_state_dict(torch.load(filename + "_vae"))
         self.vae_optimizer.load_state_dict(torch.load(filename + "_vae_optimizer"))
+
+        self.epoch = self.epoch + 1
+
+    def load_cpu(self, filename):
+        self.critic.load_state_dict(torch.load(filename + "_critic", map_location='cpu'))
+        self.critic_optimizer.load_state_dict(torch.load(filename + "_critic_optimizer", map_location='cpu'))
+        self.critic_target = copy.deepcopy(self.critic)
+
+        self.actor.load_state_dict(torch.load(filename + "_actor", map_location='cpu'))
+        self.actor_optimizer.load_state_dict(torch.load(filename + "_actor_optimizer", map_location='cpu'))
+        self.actor_target = copy.deepcopy(self.actor)
+
+        self.vae.load_state_dict(torch.load(filename + "_vae", map_location='cpu'))
+        self.vae_optimizer.load_state_dict(torch.load(filename + "_vae_optimizer", map_location='cpu'))
 
         self.epoch = self.epoch + 1
 

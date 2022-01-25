@@ -74,12 +74,76 @@ nohup python -u newmain.py --train_behavioral --env 'HalfCheetah-v3' --gaussian_
 nohup python -u algos_main.py --seed 6 --max_timesteps 500000 > ./files/BCQ_hopper_medium_6.file 2>&1 &
 
 15:57  (remote/env36) Hopper-v2 BEARmedium训练
-nohup python -u algos_main.py --algos "BEAR" --seed 6 --max_timesteps 500000 > ./files/BEAR_hopper_medium_6.file 2>&1 &
 python algos_main.py --algos "BEAR" --seed 6 --max_timesteps 500000
+ps:几乎失败了,确实
 
+2021/9/26
+12:33  (remote/env36) Hopper-v2 BEARmedium训练
+nohup python -u algos_main.py --algos "BEAR" --seed 6 --max_timesteps 1000000 > ./files/BEAR_hopper_medium_6.file 2>&1 &
+
+2021/10/2
+16:33  (remote/envgpu36) Hopper-v2 BEARexpert训练
+nohup python -u algos_main.py --algos "BEAR" --env "hopper-expert-v2" --seed 6 --max_timesteps 1000000 > ./files/BEAR_hopper_expert_6.file 2>&1 &
+
+2021/10/3
+09:10  (remote/envgpu36) Hopper-v2 BCQexpert训练
+nohup python -u algos_main.py --env "hopper-expert-v2" --seed 6 --max_timesteps 1000000 > ./files/BCQ_hopper_expert_6.file 2>&1 &
+
+2021/10/4
+16:53  (remote/envgpu36) halfcheetah-v2 BCQmedium训练
+nohup python -u algos_main.py --env "halfcheetah-medium-v2" --seed 6 --max_timesteps 1000000 > ./files/BCQ_halfcheetah_medium_6.file 2>&1 &
+
+2021/10/5
+15:55   (remote/envgpu36) halfcheetah-v2 BEARmedium训练
+nohup python -u algos_main.py --algos "BEAR" --env "halfcheetah-medium-v2" --seed 6 --max_timesteps 1000000 > ./files/BEAR_halfcheetah_medium_6.file 2>&1 &
+
+2021/10/6
+21:38  (remote/envgpu36) halfcheetah-v2 BCQexpert训练
+nohup python -u algos_main.py --env "halfcheetah-expert-v2" --seed 6 --max_timesteps 1000000 > ./files/BCQ_halfcheetah_expert_6.file 2>&1 &
+
+2021/10/7
+17:46  (remote/envgpu36) halfcheetah-v2 BEAEexpert训练
+nohup python -u algos_main.py --algos "BEAR" --env "halfcheetah-expert-v2" --seed 6 --max_timesteps 1000000 > ./files/BEAR_halfcheetah_expert_6.file 2>&1 &
+
+2021/10/8
+7:25  (remote/envgpu36) walker2d-v2 BEAEmedium训练
+nohup python -u algos_main.py --algos "BEAR" --env "walker2d-medium-v2" --seed 6 --max_timesteps 1000000 > ./files/BEAR_walker_medium_6.file 2>&1 &
+
+21:56  (remote/envgpu36) walker2d-v2 BCQmedium训练
+nohup python -u algos_main.py --algos "BCQ" --env "walker2d-medium-v2" --seed 6 --max_timesteps 1000000 > ./files/BCQ_walker_medium_6.file 2>&1 &
+
+2021/10/9
+23:52  (remote/envgpu36) walker2d-v2 BEAEexpert训练
+nohup python -u algos_main.py --algos "BEAR" --env "walker2d-expert-v2" --seed 6 --max_timesteps 1000000 > ./files/BEAR_walker_expert_6.file 2>&1 &
+
+2021/10/11
+14:43  (remote/envgpu36) walker2d-v2 BCQexpert训练
+nohup python -u algos_main.py --algos "BCQ" --env "walker2d-expert-v2" --seed 6 --max_timesteps 1000000 > ./files/BCQ_walker_expert_6.file 2>&1 &
+
+2021/10/12
+11:12  (remote/envgpu36) Hopper-v2 BCQmedium补充训练
+nohup python -u algos_main.py --seed 6 --max_timesteps 1000000 --load_model > ./files/BCQ_hopper_medium2_6.file 2>&1 &
+
+13:53  (remote/envgpu36) Hopper-v2 BEARexpert训练2
+nohup python -u algos_main.py --algos "BEAR" --env "hopper-expert-v2" --seed 57 --max_timesteps 1000000 > ./files/BEAR_hopper_expert_57.file 2>&1 &
+
+2021/10/13
+11:35  (remote/envgpu36) halfcheetah-v2 BEARexpert训练2
+nohup python -u algos_main.py --algos "BEAR" --env "halfcheetah-expert-v2" --seed 57 --max_timesteps 1000000 > ./files/BEAR_halfcheetah_expert_57.file 2>&1 &
+
+20:00  (remote/envgpu36) walker2d-v2 BEAEmedium训练2
+nohup python -u algos_main.py --algos "BEAR" --env "walker2d-medium-v2" --seed 5 --max_timesteps 1000000 > ./files/BEAR_walker_medium_5.file 2>&1 &
+
+2021/10/14
+10:00  (remote/envgpu36) walker2d-v2 BCQmedium训练2
+nohup python -u algos_main.py --algos "BCQ" --env "walker2d-medium-v2" --seed 5 --max_timesteps 1000000 > ./files/BCQ_walker_medium_5.file 2>&1 &
+
+10:01  (remote/envgpu36) walker2d-v2 BEAEmedium训练3
+nohup python -u algos_main.py --algos "BEAR" --env "walker2d-medium-v2" --seed 57 --max_timesteps 1000000 > ./files/BEAR_walker_medium_57.file 2>&1 &
+
+15:38  (remote/envgpu36) halfcheetah-v2 BEARexpert训练3
+nohup python -u algos_main.py --algos "BEAR" --env "halfcheetah-expert-v2" --seed 5 --max_timesteps 1000000 > ./files/BEAR_halfcheetah_expert_5.file 2>&1 &
 (waiting)
 
 #***********************************************************************
 
-  (remote/env36) HalfCheetah-v3 gen_buffer 模仿
-nohup python -u newmain.py --generate_buffer --env 'HalfCheetah-v3' --gaussian_std 0.0 --rand_action_p 0.0 --buffer_name "Imitat" --seed 6 > ./files/genbuffer_BCQ_imitat_C3_6.file 2>&1 &

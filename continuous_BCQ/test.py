@@ -9,6 +9,7 @@ import argparse
 import BEAR
 import DDPG
 import matplotlib.pyplot as plt
+import d4rl
 
 
 # Trains BCQ offline
@@ -61,37 +62,29 @@ def eval_policy(policy, env_name, seed, eval_episodes=10):
     return avg_reward
 
 
-def run_BCQ2(training_iters, isImit=True, aseed=0):
+def run_BCQ2(training_iters, env_name, aseed=0):
     parser = argparse.ArgumentParser()
     parser.add_argument("--discount", default=0.99)  # Discount factor
     parser.add_argument("--tau", default=0.005)  # Target network update rate
     parser.add_argument("--lmbda", default=0.75)  # Weighting for clipped double Q-learning in BCQ
     parser.add_argument("--phi", default=0.05)  # Max perturbation hyper-parameter for BCQ
     args = parser.parse_args()
-    if isImit:
-        stype = 'Imitat'
-    else:
-        stype = 'Robust'
-    env = gym.make('Hopper-v2')
+    env = gym.make(env_name)
     # env = gym.make('PongNoFrameskip-v0')
     seed = random.randint(1,99)
     env.seed(seed)
-    batch_size = 100
-    # env.action_space.seed(args.seed)
     torch.manual_seed(seed)
     np.random.seed(seed)
-    eval_freq = 500
-    # env.action_space.seed(args.seed)
-
     state_dim = env.observation_space.shape[0]
     action_dim = env.action_space.shape[0]
     max_action = float(env.action_space.high[0])
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     policy = BCQ.BCQ(state_dim, action_dim, max_action, device, args.discount, args.tau, args.lmbda, args.phi)
-    policy.load(f"./results/{stype}_BCQ_Hopper-v2_{aseed}/num_{training_iters}.0")
+    policy.load(f"./results/BCQ_{env_name}_{aseed}/num_{training_iters}.0")
 
-    a = np.load(f"./results/{stype}_BCQ_Hopper-v2_{aseed}/reward_tran.npy")
+    a = np.load(f"./results/BCQ_{env_name}_{aseed}/reward_tran.npy")
     plt.plot(a)
+    plt.title(f"BCQ_{env_name}_{aseed}")
     plt.show()
 
     for _ in range(10):
@@ -142,37 +135,31 @@ def run_BCQ():
     env.close()
 
 
-def run_BEAR2(training_iters, p=0.3, aseed=0):
+def run_BEAR2(training_iters, env_name, aseed=0):
     parser = argparse.ArgumentParser()
     parser.add_argument("--discount", default=0.99)  # Discount factor
     parser.add_argument("--tau", default=0.005)  # Target network update rate
     parser.add_argument("--lmbda", default=0.75)  # Weighting for clipped double Q-learning in BCQ
     parser.add_argument("--phi", default=0.05)  # Max perturbation hyper-parameter for BCQ
     args = parser.parse_args()
-
-    env = gym.make('Hopper-v2')
-    seed = 0
+    env = gym.make(env_name)
+    seed = random.randint(1,99)
 
     env.seed(seed)
-    batch_size = 100
-    # env.action_space.seed(args.seed)
     torch.manual_seed(seed)
     np.random.seed(seed)
-    eval_freq = 500
-    env.seed(0)
-    # env.action_space.seed(args.seed)
-    torch.manual_seed(0)
-    np.random.seed(0)
 
     state_dim = env.observation_space.shape[0]
     action_dim = env.action_space.shape[0]
     max_action = float(env.action_space.high[0])
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     policy = BEAR.BEAR(state_dim, action_dim, max_action, device, lambda_=0.0, num_samples_match=5, use_ensemble=False)
-    policy.load(f"./results/BEAR_Hopper-v2_{p}_{aseed}/BEAR_Hopper-v2_{aseed}_{training_iters}.0")
+    print(f"./results/BEAR_{env_name}_{aseed}/num_{training_iters}.0")
+    policy.load_cpu(f"./results/BEAR_{env_name}_{aseed}/num_{training_iters}.0")
 
-    a = np.load(f"./results/BEAR_Hopper-v2_{p}_{aseed}/BEAR1_Hopper-v2_{aseed}.npy")
+    a = np.load(f"./results/BEAR_{env_name}_{aseed}/reward_tran.npy")
     plt.plot(a)
+    plt.title(f"BEAR_{env_name}_{aseed}")
     plt.show()
 
     for _ in range(30):
@@ -236,20 +223,11 @@ def test_env():
     env.close()
 
 
-def plot_reward(addr_a,addr_b):
-    a = np.load(f"./results/Robust_BCQ_Hopper-v2_16/reward_tran.npy")
+def plot_reward(algo, env_name, aseed=0):
+    a = np.load(f"./results/{algo}_{env_name}_{aseed}/reward_tran.npy")
     plt.plot(a)
+    plt.title(f"{algo}_{env_name}_{aseed}")
     plt.show()
-    # a = np.load(addr_a)
-    # # b = np.load('./results/buffer_performance_Hopper-v2_0.npy')
-    # # a = np.load('./results/BCQ1_Hopper-v1_0.npy')
-    # b = np.load(addr_b)
-    # import matplotlib.pyplot as plt
-    # plt.plot(a)
-    # plt.plot(b)
-    # plt.show()
-    # # print(a)
-    # # print(b)
 
 
 def sparse_try():
@@ -343,7 +321,7 @@ def datatry():
     import d4rl  # Import required to register environments
 
     # Create the environment
-    env = gym.make('hopper-expert-v2')
+    env = gym.make('halfcheetah-medium-v2')
 
     # d4rl abides by the OpenAI gym interface
     env.reset()
@@ -361,25 +339,32 @@ def datatry():
 
 
 if __name__ == '__main__':
-    datatry()
+    # envs = "hopper-medium-v2"
+    # envs = "hopper-expert-v2"
+    # envs = "halfcheetah-medium-v2"
+    # envs = "halfcheetah-expert-v2"
+    # envs = "walker2d-medium-v2"
+    envs = "walker2d-expert-v2"
+    plot_reward("BCQ", envs, aseed=6)
+    plot_reward("BEAR", envs, aseed=6)
+    # datatry()
     # genBuffer(buffer_name="Robust1", seed=19, rand_action_p=0.0, gaussian_std=0.0)
     # sparse_try()
     # test_env()
-
     # #1   isImit=False,
-    # run_BCQ2(470000, aseed=0)  # [0.3,11],  300000，400000还凑活
+    # run_BCQ2(430000, "hopper-medium-v2", aseed=6)  # [0.3,11],  300000，400000还凑活
     # # [0.1,15],200000最好
 
     # 3
-    # run_BEAR2(30000, p=0.0, aseed=19)
+    # run_BEAR2(400000, "hopper-expert-v2", aseed=6)
     #
     # run_BEAR2(5000)
 
     #2
     # addr_a = './buffers/Robust1_Hopper-v2_19_0.0_reward.npy'
     # addr_b = './buffers/Robust_Hopper-v2_0_reward.npy'
-    # a = np.load(addr_a)
+    # a = np.load('./results/BEAR_hopper-medium-v2_6/training_iters.npy')
     # b = np.load(addr_b)
-    # print(a.size)
+    # print(a)
     # print(b.size)
     # plot_reward(addr_a, addr_b)

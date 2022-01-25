@@ -199,6 +199,18 @@ class BCQ(object):
 		self.vae.load_state_dict(torch.load(filename + "_vae"))
 		self.vae_optimizer.load_state_dict(torch.load(filename + "_vae_optimizer"))
 
+	def load_cpu(self, filename):
+		self.critic.load_state_dict(torch.load(filename + "_critic", map_location='cpu'))
+		self.critic_optimizer.load_state_dict(torch.load(filename + "_critic_optimizer", map_location='cpu'))
+		self.critic_target = copy.deepcopy(self.critic)
+
+		self.actor.load_state_dict(torch.load(filename + "_actor", map_location='cpu'))
+		self.actor_optimizer.load_state_dict(torch.load(filename + "_actor_optimizer", map_location='cpu'))
+		self.actor_target = copy.deepcopy(self.actor)
+
+		self.vae.load_state_dict(torch.load(filename + "_vae", map_location='cpu'))
+		self.vae_optimizer.load_state_dict(torch.load(filename + "_vae_optimizer", map_location='cpu'))
+
 	def sample_data(self,data, batch_size):
 		ind = np.random.randint(0, len(data['observations']), size=batch_size)
 		return (

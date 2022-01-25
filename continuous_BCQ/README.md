@@ -1,41 +1,39 @@
-# Off-Policy Deep Reinforcement Learning without Exploration
-
-Code for Batch-Constrained deep Q-Learning (BCQ). If you use our code please cite the [paper](https://arxiv.org/abs/1812.02900).
+# Performance of BCQ and BEAR on Mujoco
+[BCQ](http://proceedings.mlr.press/v97/fujimoto19a.html) and [BEAR](https://arxiv.org/abs/1906.00949) are two off-policy deep reinforcement learning algorithms.
 
 Method is tested on [MuJoCo](http://www.mujoco.org/) continuous control tasks in [OpenAI gym](https://github.com/openai/gym). 
 Networks are trained using [PyTorch 1.4](https://github.com/pytorch/pytorch) and Python 3.6. 
 
 ### Overview
 
-If you are interested in reproducing some of the results from the paper, a behavioral policy (DDPG) needs to be trained by running:
+If you want to use the dataset, you have to install the [d4rl](https://github.com/rail-berkeley/d4rl) package:
 ```
-python main.py --train_behavioral --gaussian_std 0.1
-```
-This will save the PyTorch model. A new buffer, corresponding to the "imperfect demonstrations" task, can then be collected by running:
-```
-python main.py --generate_buffer --max_timesteps 100000
-```
-Or for the "imitation" task by running:
-```
-python main.py --generate_buffer --gaussian_std 0.0 --rand_action_p 0.0
-```
-Finally train BCQ by running:
-```
-python main.py
+git clone https://github.com/rail-berkeley/d4rl.git
+cd d4rl
+pip install -e .
 ```
 
-Settings can be adjusted with different arguments to main.py.
+数据集格式（dic，键值）
+> 'actions', 'infos/action_log_probs', 'infos/qpos', 'infos/qvel', 'metadata/algorithm', 'metadata/iteration', 'metadata/policy/fc0/bias', 'metadata/policy/fc0/weight', 'metadata/policy/fc1/bias', 'metadata/policy/fc1/weight', 'metadata/policy/last_fc/bias', 'metadata/policy/last_fc/weight', 'metadata/policy/last_fc_log_std/bias', 'metadata/policy/last_fc_log_std/weight', 'metadata/policy/nonlinearity', 'metadata/policy/output_distribution', 'next_observations', 'observations', 'rewards', 'terminals', 'timeouts'
 
-DDPG was updated to learn more consistently. Additionally, with version updates to Python, PyTorch and environments, results may not correspond exactly to the paper. Some people have reported instability using the v2 environments, so sticking with v3 is preferred.
-
-### Bibtex
-
+### run
+1. 直接运行（算法 BCQ，环境 hopper-medium-v2，seed 0，运行次数 1e6）:
 ```
-@inproceedings{fujimoto2019off,
-  title={Off-Policy Deep Reinforcement Learning without Exploration},
-  author={Fujimoto, Scott and Meger, David and Precup, Doina},
-  booktitle={International Conference on Machine Learning},
-  pages={2052--2062},
-  year={2019}
-}
+python algos_main.py
 ```
+2. Settings can be adjusted with different arguments to algos_main.py.
+```
+python algos_main.py --algos "BEAR" --env "halfcheetah-medium-v2" --seed 7 --max_timesteps 1000000
+```
+3. if you want to run the program in the background:
+```
+nohup python -u algos_main.py --algos "BEAR" --env "halfcheetah-medium-v2" --seed 7 --max_timesteps 1000000 > ./files/BEAR_halfcheetah_medium_7.file 2>&1 &
+```
+### test
+1. 运行后的测试(newtest.py)：
+```
+python newtest.py
+```
+ps:可以通过更改参数绘制不同环境/数据集的reward曲线。
+
+2. 原测试文件（test.py),对应于main.py，是通过自己训练的数据集（DDPG）进行训练时的一些测试文件

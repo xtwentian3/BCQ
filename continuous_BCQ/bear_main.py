@@ -91,8 +91,9 @@ def interact_with_environment(env, state_dim, action_dim, max_action, device, ar
 def train_BEAR(state_dim, action_dim, max_action, device, args):
     # For saving files
     setting = f"{args.env}_{args.seed}"
-    buffer_name = f"{args.buffer_name}_{setting}"
-    buffer_name1 = f"{args.buffer_name}_{args.env}_0"
+    buffer_name = f"{args.buffer_name}_BEAR_{setting}"
+    buffer_name1 = f"{args.buffer_name}_BCQ_{setting}"
+    # buffer_name1 = f"{args.buffer_name}_{args.env}_0"
     print(setting)
     print(buffer_name)
     # Initialize policy
@@ -100,29 +101,32 @@ def train_BEAR(state_dim, action_dim, max_action, device, args):
 
     # Load buffer
     replay_buffer = utils.ReplayBuffer(state_dim, action_dim, device)
-    replay_buffer.load(f"./buffers/{buffer_name1}")
+    if args.load_model:
+        policy.load(f"./results/BEAR_Hopper-v2_0.1_11/BEAR_Hopper-v2_11_50000.0")
+        replay_buffer.load(f"./buffers/Robust_Hopper-v2_0_0.1")
+    else:
+        replay_buffer.load(f"./buffers/{buffer_name1}")
 
     evaluations = []
     episode_num = 0
     done = True
     training_iters = 0
-
-    file_name = f"./results/BEAR_{args.env}_{args.rand_action_p}_{args.seed}"
+    file_name = f"./results/{buffer_name}"
     if not os.path.exists(file_name):
         os.makedirs(file_name)
-    policy.save(f"{file_name}/BEAR_{setting}_{training_iters}")
+    policy.save(f"{file_name}/BEAR_{buffer_name}")
     while training_iters < args.max_timesteps:
         pol_vals = policy.train(replay_buffer, iterations=int(args.eval_freq), batch_size=args.batch_size)
 
         evaluations.append(eval_policy(policy, args.env, args.seed))
-        np.save(f"{file_name}/BEAR1_{setting}", evaluations)
+        np.save(f"{file_name}/reward_tran", evaluations)
 
         training_iters += args.eval_freq
         print(f"Training iterations: {training_iters}")
-        if training_iters % 10000 == 0:
-            policy.save(f"{file_name}/BEAR_{setting}_{training_iters}")
+        if training_iters > args.max_timesteps * 0.85 and training_iters % 10000 == 0:
+            policy.save(f"{file_name}/BEAR_{buffer_name}")
     # # Save final policy
-    # torch.save(policy, f"./results/BEAR1_{setting}.pt")
+    policy.save(f"{file_name}/final_policy")
 
 
 # Runs policy for X episodes and returns average reward
@@ -169,6 +173,7 @@ if __name__ == "__main__":
     parser.add_argument("--phi", default=0.05)  # Max perturbation hyper-parameter for BCQ
     parser.add_argument("--train_behavioral", action="store_true")  # If true, train behavioral (DDPG)
     parser.add_argument("--generate_buffer", action="store_true")  # If true, generate buffer
+    parser.add_argument("--load_model", action="store_true")  # If true, generate buffer
     args = parser.parse_args()
 
     print("---------------------------------------")

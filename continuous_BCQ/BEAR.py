@@ -431,7 +431,6 @@ class BEAR(object):
 
                 # Compute value of perturbed actions sampled from the VAE
                 target_Qs = self.critic_target(state_rep, self.actor_target(state_rep))
-
                 # Soft Clipped Double Q-learning
                 target_Q = 0.75 * target_Qs.min(0)[0] + 0.25 * target_Qs.max(0)[0]
                 target_Q = target_Q.view(batch_size, -1).max(1)[0].view(-1, 1)
@@ -445,8 +444,7 @@ class BEAR(object):
             #     # (F.mse_loss(current_Qs[3], target_Q, reduction='none') * mask[:, 3:4]).mean()
             # else:
             critic_loss = F.mse_loss(current_Qs[0], target_Q) + F.mse_loss(current_Qs[1],
-                                                                               target_Q)  # + F.mse_loss(current_Qs[2], target_Q) + F.mse_loss(current_Qs[3], target_Q)
-
+                           target_Q)  # + F.mse_loss(current_Qs[2], target_Q) + F.mse_loss(current_Qs[3], target_Q)
             self.critic_optimizer.zero_grad()
             critic_loss.backward()
             self.critic_optimizer.step()

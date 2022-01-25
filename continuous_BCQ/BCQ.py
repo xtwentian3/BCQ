@@ -144,8 +144,12 @@ class BCQ(object):
             # Critic Training
             with torch.no_grad():
                 # Duplicate next state 10 times
-                next_state = torch.repeat_interleave(next_state, 10, 0)
-
+                print(next_state.size())
+                next_state = torch.repeat_interleave(next_state, 10, dim=0)
+                print(next_state.size())
+                print(action.size())
+                print(reward.size())
+                print(current_Qs.shape())
                 # Compute value of perturbed actions sampled from the VAE
                 target_Q1, target_Q2 = self.critic_target(next_state, self.actor_target(next_state, self.vae.decode(next_state)))
 

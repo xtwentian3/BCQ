@@ -14,10 +14,10 @@ def train_2B(state_dim, action_dim, max_action, device, dataset, args):
     # buffer_name1 = f"{args.buffer_name}_{args.env}_0"
     print(setting)
     # Initialize policy
-    if args.env == 'BCQ':
+    if args.algos == "BCQ":
         policy = BCQ.BCQ(state_dim, action_dim, max_action, device, args.discount, args.tau, args.lmbda, args.phi)
         file_name = f"./results/BCQ_{setting}"
-    else:
+    elif args.algos == "BEAR":
         policy = BEAR.BEAR(state_dim, action_dim, max_action, device, lambda_=0.0, num_samples_match=5, use_ensemble=False)
         file_name = f"./results/BEAR_{setting}"
     training_iters = 0

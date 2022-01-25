@@ -574,8 +574,8 @@ class BEAR(object):
             data['observations'][ind],
             data['actions'][ind],
             data['next_observations'][ind],
-            data['rewards'][ind],
-            data['terminals'][ind]
+            np.expand_dims(data['rewards'][ind],axis=1),
+            np.expand_dims(data['terminals'][ind],axis=1)
         )
 
 def weighted_mse_loss(inputs, target, weights):

@@ -303,7 +303,7 @@ class VAE(nn.Module):
 
 
 class BEAR(object):
-    def __init__(self, state_dim, action_dim, max_action, device, num_qs=2, delta_conf=0.1, use_bootstrap=True, version=0,
+    def __init__(self, num_qs, state_dim, action_dim, max_action, delta_conf=0.1, use_bootstrap=True, version=0,
                  lambda_=0.4,
                  threshold=0.05, mode='auto', num_samples_match=10, mmd_sigma=10.0,
                  lagrange_thresh=10.0, use_kl=False, use_ensemble=True, kernel_type='laplacian'):
@@ -405,13 +405,13 @@ class BEAR(object):
 
     def train(self, replay_buffer, iterations, batch_size=100, discount=0.99, tau=0.005):
         for it in range(iterations):
-            state_np, action, next_state_np, reward, done = replay_buffer.sample(batch_size)
+            state_np, next_state_np, action, reward, done, mask = replay_buffer.sample(batch_size)
             state = torch.FloatTensor(state_np).to(device)
             action = torch.FloatTensor(action).to(device)
             next_state = torch.FloatTensor(next_state_np).to(device)
             reward = torch.FloatTensor(reward).to(device)
             done = torch.FloatTensor(1 - done).to(device)
-            # mask = torch.FloatTensor(mask).to(device)
+            mask = torch.FloatTensor(mask).to(device)
 
             # Train the Behaviour cloning policy to be able to take more than 1 sample for MMD
             recon, mean, std = self.vae(state, action)
@@ -437,13 +437,13 @@ class BEAR(object):
                 target_Q = reward + done * discount * target_Q
 
             current_Qs = self.critic(state, action, with_var=False)
-            # if self.use_bootstrap:
-            #     critic_loss = (F.mse_loss(current_Qs[0], target_Q, reduction='none') * mask[:, 0:1]).mean() + \
-            #                   (F.mse_loss(current_Qs[1], target_Q, reduction='none') * mask[:, 1:2]).mean()
-            #     # (F.mse_loss(current_Qs[2], target_Q, reduction='none') * mask[:, 2:3]).mean() +\
-            #     # (F.mse_loss(current_Qs[3], target_Q, reduction='none') * mask[:, 3:4]).mean()
-            # else:
-            critic_loss = F.mse_loss(current_Qs[0], target_Q) + F.mse_loss(current_Qs[1],
+            if self.use_bootstrap:
+                critic_loss = (F.mse_loss(current_Qs[0], target_Q, reduction='none') * mask[:, 0:1]).mean() + \
+                              (F.mse_loss(current_Qs[1], target_Q, reduction='none') * mask[:, 1:2]).mean()
+                # (F.mse_loss(current_Qs[2], target_Q, reduction='none') * mask[:, 2:3]).mean() +\
+                # (F.mse_loss(current_Qs[3], target_Q, reduction='none') * mask[:, 3:4]).mean()
+            else:
+                critic_loss = F.mse_loss(current_Qs[0], target_Q) + F.mse_loss(current_Qs[1],
                                                                                target_Q)  # + F.mse_loss(current_Qs[2], target_Q) + F.mse_loss(current_Qs[3], target_Q)
 
             self.critic_optimizer.zero_grad()
@@ -878,7 +878,6 @@ class BEAR_IS(object):
         # ))
         self.epoch = self.epoch + 1
 
-
 '''
 class BCQ(object):
     def __init__(self, state_dim, action_dim, max_action, cloning=False):
@@ -1266,4 +1265,3 @@ class KLControl(object):
         #     'Estimated KL',
         #     estimated_kl.cpu().data.numpy(),
         # ))
-

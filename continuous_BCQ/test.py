@@ -91,6 +91,42 @@ def run_BCQ():
     env.close()
 
 
+def run_BEAR():
+    env = gym.make('Hopper-v1')
+    seed = 0
+    import gym.spaces.box as Box
+
+    # env = gym.make('PongNoFrameskip-v0')
+
+    env.seed(seed)
+    batch_size = 100
+    # env.action_space.seed(args.seed)
+    torch.manual_seed(seed)
+    np.random.seed(seed)
+    eval_freq = 500
+    env.seed(0)
+    # env.action_space.seed(args.seed)
+    torch.manual_seed(0)
+    np.random.seed(0)
+
+    state_dim = env.observation_space.shape[0]
+    action_dim = env.action_space.shape[0]
+    max_action = float(env.action_space.high[0])
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    policy = torch.load('./results/BEAR_Hopper-v1_0.pt')
+    for _ in range(3000):
+        obs = env.reset()
+        env.render()
+        # action = env.action_space.sample()
+        action = policy.select_action(obs)
+        obs, reward, done, info = env.step(action)
+        print(obs)
+        print(action)
+        # if done:
+        #     break
+    env.close()
+
+
 def test_env():
     env = gym.make('Walker2d-v1')
     print(env.action_space)
@@ -111,36 +147,36 @@ def plot_reward():
     plt.show()
 
 
-def train_BEAR(state_dim, action_dim, max_action, device, args):
-    # For saving files
-    setting = f"{args.env}_{args.seed}"
-    buffer_name = f"{args.buffer_name}_{setting}"
-    print(setting)
-    print(buffer_name)
-    # Initialize policy
-    policy = BCQ.BCQ(state_dim, action_dim, max_action, device, args.discount, args.tau, args.lmbda, args.phi)
-
-    # Load buffer
-    replay_buffer = utils.ReplayBuffer(state_dim, action_dim, device)
-    replay_buffer.load(f"./buffers/{buffer_name}")
-
-    evaluations = []
-    episode_num = 0
-    done = True
-    training_iters = 0
-
-    while training_iters < args.max_timesteps:
-        pol_vals = policy.train(replay_buffer, iterations=int(args.eval_freq), batch_size=args.batch_size)
-
-        evaluations.append(eval_policy(policy, args.env, args.seed))
-        np.save(f"./results/BCQ_{setting}", evaluations)
-
-        training_iters += args.eval_freq
-        print(f"Training iterations: {training_iters}")
-    # Save final policy
-    torch.save(policy, f"./results/BCQ_{setting}.pt")
+# def train_BEAR(state_dim, action_dim, max_action, device, args):
+#     # For saving files
+#     setting = f"{args.env}_{args.seed}"
+#     buffer_name = f"{args.buffer_name}_{setting}"
+#     print(setting)
+#     print(buffer_name)
+#     # Initialize policy
+#     policy = BCQ.BCQ(state_dim, action_dim, max_action, device, args.discount, args.tau, args.lmbda, args.phi)
+#
+#     # Load buffer
+#     replay_buffer = utils.ReplayBuffer(state_dim, action_dim, device)
+#     replay_buffer.load(f"./buffers/{buffer_name}")
+#
+#     evaluations = []
+#     episode_num = 0
+#     done = True
+#     training_iters = 0
+#
+#     while training_iters < args.max_timesteps:
+#         pol_vals = policy.train(replay_buffer, iterations=int(args.eval_freq), batch_size=args.batch_size)
+#
+#         evaluations.append(eval_policy(policy, args.env, args.seed))
+#         np.save(f"./results/BCQ_{setting}", evaluations)
+#
+#         training_iters += args.eval_freq
+#         print(f"Training iterations: {training_iters}")
+#     # Save final policy
+#     torch.save(policy, f"./results/BCQ_{setting}.pt")
 
 
 if __name__ == '__main__':
     # test_env()
-    run_BCQ()
+    run_BEAR()

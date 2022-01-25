@@ -85,7 +85,7 @@ class VAE(nn.Module):
     def decode(self, state, z=None):
         # When sampling from the VAE, the latent vector is clipped to [-0.5, 0.5]
         if z is None:
-            z = torch.randn((state.shape[0], self.latent_dim)).to(self.device).clamp(-0.5, 0.5)
+            z = torch.randn((state.shape[0], self.latent_dim)).to(self.device).clamp(-0.5,0.5)
 
         a = F.relu(self.d1(torch.cat([state, z], 1)))
         a = F.relu(self.d2(a))
@@ -114,6 +114,7 @@ class BCQ(object):
         self.lmbda = lmbda
         self.device = device
 
+
     def select_action(self, state):
         with torch.no_grad():
             state = torch.FloatTensor(state.reshape(1, -1)).repeat(100, 1).to(self.device)
@@ -122,21 +123,23 @@ class BCQ(object):
             ind = q1.argmax(0)
         return action[ind].cpu().data.numpy().flatten()
 
+
     def train(self, replay_buffer, iterations, batch_size=100):
 
         for it in range(iterations):
             # Sample replay buffer / batch
-            state, action, next_state, reward, not_done = replay_buffer.sample(batch_size)
+            state, action, next_state, reward, not_done = self.sample_data(replay_buffer, batch_size)
 
             # Variational Auto-Encoder Training
             recon, mean, std = self.vae(state, action)
             recon_loss = F.mse_loss(recon, action)
-            KL_loss = -0.5 * (1 + torch.log(std.pow(2)) - mean.pow(2) - std.pow(2)).mean()
+            KL_loss	= -0.5 * (1 + torch.log(std.pow(2)) - mean.pow(2) - std.pow(2)).mean()
             vae_loss = recon_loss + 0.5 * KL_loss
 
             self.vae_optimizer.zero_grad()
             vae_loss.backward()
             self.vae_optimizer.step()
+
 
             # Critic Training
             with torch.no_grad():
@@ -144,12 +147,10 @@ class BCQ(object):
                 next_state = torch.repeat_interleave(next_state, 10, 0)
 
                 # Compute value of perturbed actions sampled from the VAE
-                target_Q1, target_Q2 = self.critic_target(next_state,
-                                                          self.actor_target(next_state, self.vae.decode(next_state)))
+                target_Q1, target_Q2 = self.critic_target(next_state, self.actor_target(next_state, self.vae.decode(next_state)))
 
                 # Soft Clipped Double Q-learning
-                target_Q = self.lmbda * torch.min(target_Q1, target_Q2) + (1. - self.lmbda) * torch.max(target_Q1,
-                                                                                                        target_Q2)
+                target_Q = self.lmbda * torch.min(target_Q1, target_Q2) + (1. - self.lmbda) * torch.max(target_Q1, target_Q2)
                 # Take max over each action sampled from the VAE
                 target_Q = target_Q.reshape(batch_size, -1).max(1)[0].reshape(-1, 1)
 
@@ -161,6 +162,7 @@ class BCQ(object):
             self.critic_optimizer.zero_grad()
             critic_loss.backward()
             self.critic_optimizer.step()
+
 
             # Pertubation Model / Action Training
             sampled_actions = self.vae.decode(state)
@@ -201,3 +203,13 @@ class BCQ(object):
 
         self.vae.load_state_dict(torch.load(filename + "_vae"))
         self.vae_optimizer.load_state_dict(torch.load(filename + "_vae_optimizer"))
+
+    def sample_data(self,data, batch_size):
+        ind = np.random.randint(0, len(data['observations']), size=batch_size)
+        return (
+            torch.FloatTensor(data['observations'][ind]).to(self.device),
+            torch.FloatTensor(data['actions'][ind]).to(self.device),
+            torch.FloatTensor(data['next_observations'][ind]).to(self.device),
+            torch.FloatTensor(data['rewards'][ind]).to(self.device),
+            torch.FloatTensor(~data['terminals'][ind]).to(self.device)
+        )

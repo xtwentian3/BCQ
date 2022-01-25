@@ -13,11 +13,12 @@ import utils
 def interact_with_environment(env, state_dim, action_dim, max_action, device, args):
     # For saving files
     setting = f"{args.env}_{args.seed}"
+    setting1 = f"{args.env}_0"
     buffer_name = f"{args.buffer_name}_{setting}"
 
     # Initialize and load policy
     policy = DDPG.DDPG(state_dim, action_dim, max_action, device)  # , args.discount, args.tau)
-    if args.generate_buffer: policy.load(f"./models/behavioral_{setting}")
+    if args.generate_buffer: policy.load(f"./models/behavioral_{setting1}")
 
     # Initialize buffer
     replay_buffer = utils.ReplayBuffer(state_dim, action_dim, device)
@@ -73,7 +74,7 @@ def interact_with_environment(env, state_dim, action_dim, max_action, device, ar
         # Evaluate episode
         if args.train_behavioral and (t + 1) % args.eval_freq == 0:
             evaluations.append(eval_policy(policy, args.env, args.seed))
-            np.save(f"./results/behavioral_{setting}", evaluations)
+            np.save(f"./models/behavioral_{setting}", evaluations)
             policy.save(f"./models/behavioral_{setting}")
 
     # Save final policy
@@ -83,7 +84,7 @@ def interact_with_environment(env, state_dim, action_dim, max_action, device, ar
     # Save final buffer and performance
     else:
         evaluations.append(eval_policy(policy, args.env, args.seed))
-        np.save(f"./results/buffer_performance_{setting}", evaluations)
+        np.save(f"./buffers/performance_{buffer_name}", evaluations)
         replay_buffer.save(f"./buffers/{buffer_name}")
 
 
@@ -91,38 +92,45 @@ def interact_with_environment(env, state_dim, action_dim, max_action, device, ar
 def train_BCQ(state_dim, action_dim, max_action, device, args):
     # For saving files
     setting = f"{args.env}_{args.seed}"
-    buffer_name = f"{args.buffer_name}_{setting}"
-    buffer_name1 = f"{args.buffer_name}_{args.env}_0"
+    buffer_name = f"{args.buffer_name}_BCQ_{setting}"
+    # buffer_name1 = f"{args.buffer_name}_{args.env}_0"
     print(setting)
     print(buffer_name)
     # Initialize policy
     policy = BCQ.BCQ(state_dim, action_dim, max_action, device, args.discount, args.tau, args.lmbda, args.phi)
 
-    # Load buffer
-    replay_buffer = utils.ReplayBuffer(state_dim, action_dim, device)
-    replay_buffer.load(f"./buffers/{buffer_name}_0.0")
-
+    training_iters = 0
     evaluations = []
     episode_num = 0
     done = True
-    training_iters = 0
-    file_name = f"./results/BCQ_{args.env}_{args.rand_action_p}_{args.seed}"
+    file_name = f"./results/{buffer_name}"
     if not os.path.exists(file_name):
         os.makedirs(file_name)
-    policy.save(f"{file_name}/BCQ_{setting}_{training_iters}")
+    # Load buffer
+    replay_buffer = utils.ReplayBuffer(state_dim, action_dim, device)
+    if args.load_model:
+        policy.load(f"./results/Robust_BCQ_Hopper-v2_16/final_policy")
+        replay_buffer.load(f"./buffers/{buffer_name}")
+        training_iters = 500000
+        evaluations = np.load(f"{file_name}/reward_tran.npy")
+    else:
+        replay_buffer.load(f"./buffers/{buffer_name}")
+
+    # if training_iters < args.max_timesteps * 0.85:  # 只是为了测试
+    #     policy.save(f"{file_name}/num_{training_iters}")
     while training_iters < args.max_timesteps:
         pol_vals = policy.train(replay_buffer, iterations=int(args.eval_freq), batch_size=args.batch_size)
 
-        evaluations.append(eval_policy(policy, args.env, args.seed))
-        np.save(f"./results/BCQ1_{setting}", evaluations)
+        evaluations = np.append(evaluations, eval_policy(policy, args.env, args.seed))
+        np.save(f"{file_name}/reward_tran", evaluations)
 
         training_iters += args.eval_freq
         print(f"Training iterations: {training_iters}")
 
-        if training_iters % 10000 == 0:
-            policy.save(f"{file_name}/BCQ_{setting}_{training_iters}")
+        if training_iters > args.max_timesteps * 0.85 and training_iters % 10000 == 0:
+            policy.save(f"{file_name}/num_{training_iters}")
     # # Save final policy
-    # torch.save(policy, f"./results/BCQ1_{setting}.pt")
+    policy.save(f"{file_name}/final_policy")
 
 
 # Runs policy for X episodes and returns average reward
@@ -154,7 +162,7 @@ if __name__ == "__main__":
     parser.add_argument("--seed", default=0, type=int)  # Sets Gym, PyTorch and Numpy seeds
     parser.add_argument("--buffer_name", default="Robust")  # Prepends name to filename
     parser.add_argument("--eval_freq", default=5e3, type=float)  # How often (time steps) we evaluate
-    parser.add_argument("--max_timesteps", default=6e5,
+    parser.add_argument("--max_timesteps", default=1e6,
                         type=int)  # Max time steps to run environment or train for (this defines buffer size)
     parser.add_argument("--start_timesteps", default=25e3,
                         type=int)  # Time steps initial random policy is used before training behavioral
@@ -169,6 +177,7 @@ if __name__ == "__main__":
     parser.add_argument("--phi", default=0.05)  # Max perturbation hyper-parameter for BCQ
     parser.add_argument("--train_behavioral", action="store_true")  # If true, train behavioral (DDPG)
     parser.add_argument("--generate_buffer", action="store_true")  # If true, generate buffer
+    parser.add_argument("--load_model", action="store_true")  # If true, generate buffer
     args = parser.parse_args()
 
     print("---------------------------------------")

@@ -26,3 +26,84 @@ test.py
 
 12:03  (remote/env36)
 nohup python -u newmain.py --buffer_name "Robust1" --seed 19 --max_timesteps 50000 --rand_action_p 0.0 > ./files/train_BCQ_0000_19.file 2>&1 &
+
+13:28  (remote/env36)
+nohup python -u bear_main.py --buffer_name "Robust1" --seed 19 --max_timesteps 50000 --rand_action_p 0.0 > ./files/train_BEAR_0000_19.file 2>&1 &
+
+14:04  (local/env36)
+test.py
+    run_BEAR2(10000, p=0.3, aseed=11)
+
+15:40  (remote/env36)
+nohup python -u newmain.py --seed 15 --max_timesteps 500000 --rand_action_p 0.1 --load_model > ./files/train_BCQ_0914pm1546.file 2>&1 &
+
+2021/9/15
+12:13  (local/env36)
+test.py
+    run_BCQ2(10000, p=0.0, aseed=19)
+
+2021/9/16
+11:41  (remote/env36)
+nohup python -u newmain.py --generate_buffer --max_timesteps 100000  > ./files/genbuffer_BCQ_imperfect_H2_0.file 2>&1 &
+# --buffer_name "Robust"
+
+12:35  (remote/env36)
+nohup python -u newmain.py --generate_buffer --gaussian_std 0.0 --rand_action_p 0.0 --buffer_name "Imitat" > ./files/genbuffer_BCQ_imitat_H2_0.file 2>&1 &
+
+13:13  (local/env36)
+nohup python -u newmain.py --generate_buffer --max_timesteps 100000 --seed 16 > ./files/genbuffer_BCQ_imperfect_H2_16.file 2>&1 &
+
+19:20  (remote/env36) Hopper-v2 BCQ 不完美训练
+nohup python -u newmain.py --buffer_name "Robust" --seed 16 --max_timesteps 500000 > ./files/train_BCQ_imperfect_H2_16.file 2>&1 &
+
+
+  (remote/env36) Hopper-v2 BCQ 模仿训练
+nohup python -u newmain.py --buffer_name "Imitat" --seed 0 --max_timesteps 500000 > ./files/train_BCQ_imitat_H2_0.file 2>&1 &
+
+2021/9/18
+14:27  (remote/env36) Hopper-v2 BEAR 不完美训练
+nohup python -u bear_main.py --buffer_name "Robust" --seed 16 --max_timesteps 500000 > ./files/train_BEAR_imperfect_H2_16.file 2>&1 &
+
+2021/9/23
+16:08  (remote/env36) HalfCheetah-v3 BEAR 行为训练
+nohup python -u newmain.py --train_behavioral --env 'HalfCheetah-v3' --gaussian_std 0.1 --seed 6 > ./files/train_behavioral_C3_6.file 2>&1 &
+# 'Walker2d-v2'  'HalfCheetah-v3'
+
+(waiting)
+  (remote/env36) Hopper-v2 BCQ 不完美训练 100w
+nohup python -u newmain.py --load_model --buffer_name "Robust" --seed 16 --max_timesteps 1000000 > ./files/train_BCQ_imperfect2_H2_16.file 2>&1 &
+
+  (remote/env36) Hopper-v2 BEAR 模仿训练
+nohup python -u bear_main.py --buffer_name "Imitat" --seed 0 --max_timesteps 500000 > ./files/train_BEAR_imitat_H2_0.file 2>&1 &
+
+#****************************************************************************************************************************************
+
+  (remote/env36) Walker2d-v3 DDPG 行为训练
+nohup python -u newmain.py --train_behavioral --env 'Walker2d-v3' --gaussian_std 0.1 --seed 6 > ./files/train_behavioral_w3_6.file 2>&1 &
+# 'Walker2d-v2'  'HalfCheetah-v3'
+
+  #  可能得改设置main.py
+  (remote/env36) HalfCheetah-v3 gen_buffer 模仿
+nohup python -u newmain.py --generate_buffer --env 'HalfCheetah-v3' --gaussian_std 0.0 --rand_action_p 0.0 --buffer_name "Imitat" --seed 6 > ./files/genbuffer_BCQ_imitat_C3_6.file 2>&1 &
+
+  (local/env36)  HalfCheetah-v3 gen_buffer 不完美
+nohup python -u newmain.py --generate_buffer --env 'HalfCheetah-v3' --max_timesteps 100000 --seed 6 > ./files/genbuffer_BCQ_imperfect_C3_6.file 2>&1 &
+
+
+  (remote/env36) HalfCheetah-v3 BCQ 不完美训练
+nohup python -u newmain.py --buffer_name "Robust" --env 'HalfCheetah-v3' --seed 6 --max_timesteps 500000 > ./files/train_BCQ_imperfect_C3_6.file 2>&1 &
+
+  (remote/env36) HalfCheetah-v3 BCQ 模仿训练
+nohup python -u newmain.py --buffer_name "Imitat" --env 'HalfCheetah-v3' --seed 6 --max_timesteps 500000 > ./files/train_BCQ_imitat_C3_6.file 2>&1 &
+
+  (remote/env36) HalfCheetah-v3 BEAR 不完美训练
+nohup python -u bear_main.py --buffer_name "Robust" --env 'HalfCheetah-v3' --seed 6 --max_timesteps 500000 > ./files/train_BEAR_imperfect_C3_6.file 2>&1 &
+
+  (remote/env36) HalfCheetah-v3 BEAR 模仿训练
+nohup python -u bear_main.py --buffer_name "Imitat" --env 'HalfCheetah-v3' --seed 6 --max_timesteps 500000 > ./files/train_BEAR_imitat_C3_6.file 2>&1 &
+
+
+#***********************************************************************
+
+  (remote/env36) HalfCheetah-v3 gen_buffer 模仿
+nohup python -u newmain.py --generate_buffer --env 'HalfCheetah-v3' --gaussian_std 0.0 --rand_action_p 0.0 --buffer_name "Imitat" --seed 6 > ./files/genbuffer_BCQ_imitat_C3_6.file 2>&1 &

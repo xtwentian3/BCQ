@@ -110,12 +110,12 @@ def train_BCQ(state_dim, action_dim, max_action, device, args):
         pol_vals = policy.train(replay_buffer, iterations=int(args.eval_freq), batch_size=args.batch_size)
 
         evaluations.append(eval_policy(policy, args.env, args.seed))
-        np.save(f"./results/BCQ_{setting}", evaluations)
+        np.save(f"./results/BCQ1_{setting}", evaluations)
 
         training_iters += args.eval_freq
         print(f"Training iterations: {training_iters}")
     # Save final policy
-    torch.save(policy, f"./results/BCQ_{setting}.pt")
+    torch.save(policy, f"./results/BCQ1_{setting}.pt")
 
 
 # Runs policy for X episodes and returns average reward
@@ -146,10 +146,10 @@ if __name__ == "__main__":
     parser.add_argument("--env", default="Hopper-v1")  # OpenAI gym environment name
     parser.add_argument("--seed", default=0, type=int)  # Sets Gym, PyTorch and Numpy seeds
     parser.add_argument("--buffer_name", default="Robust")  # Prepends name to filename
-    parser.add_argument("--eval_freq", default=5e2, type=float)  # How often (time steps) we evaluate
-    parser.add_argument("--max_timesteps", default=1e4,
+    parser.add_argument("--eval_freq", default=5e3, type=float)  # How often (time steps) we evaluate
+    parser.add_argument("--max_timesteps", default=1e6,
                         type=int)  # Max time steps to run environment or train for (this defines buffer size)
-    parser.add_argument("--start_timesteps", default=25e2,
+    parser.add_argument("--start_timesteps", default=25e3,
                         type=int)  # Time steps initial random policy is used before training behavioral
     parser.add_argument("--rand_action_p", default=0.3,
                         type=float)  # Probability of selecting random action during batch generation

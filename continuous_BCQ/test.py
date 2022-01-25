@@ -77,7 +77,7 @@ def run_BCQ():
     action_dim = env.action_space.shape[0]
     max_action = float(env.action_space.high[0])
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    policy = torch.load('./results/BCQ_Hopper-v1_0.pt')
+    policy = torch.load('./results/BCQ1_Hopper-v1_0.pt')
     for _ in range(3000):
         obs = env.reset()
         env.render()
@@ -141,9 +141,11 @@ def test_env():
 
 
 def plot_reward():
-    a = np.load('./results/BCQ_Hopper-v1_0.npy')
+    a = np.load('./results/BCQ1_Hopper-v1_0.npy')
+    b = np.load('./results/BCQ_Hopper-v1_0.npy')
     import matplotlib.pyplot as plt
     plt.plot(a)
+    plt.plot(b)
     plt.show()
 
 
@@ -179,4 +181,5 @@ def plot_reward():
 
 if __name__ == '__main__':
     # test_env()
-    run_BEAR()
+    # run_BCQ()
+    plot_reward()

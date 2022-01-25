@@ -110,12 +110,15 @@ def train_BEAR(state_dim, action_dim, max_action, device, args):
         pol_vals = policy.train(replay_buffer, iterations=int(args.eval_freq), batch_size=args.batch_size)
 
         evaluations.append(eval_policy(policy, args.env, args.seed))
-        np.save(f"./results/BEAR_{setting}", evaluations)
+        np.save(f"./results/BEAR1.0_{setting}", evaluations)
 
         training_iters += args.eval_freq
         print(f"Training iterations: {training_iters}")
+
+        if training_iters % 200000 == 0:
+            torch.save(policy, f"./results/BEAR1.0_{training_iters}_{setting}.pt")
     # Save final policy
-    torch.save(policy, f"./results/BEAR_{setting}.pt")
+    torch.save(policy, f"./results/BEAR1.0_{setting}.pt")
 
 
 # Runs policy for X episodes and returns average reward
